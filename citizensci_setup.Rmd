@@ -1,5 +1,5 @@
 ---
-title: "AMMonitor_setup"
+title: "citizensci_setup"
 author: "Fanglin"
 date: "2023-12-11"
 output: html_document
@@ -8,23 +8,91 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+## 1. Setup a citizensci project
 
-## R Markdown
+AMMonitor 1.0.0 is a R package and can be act as a template for citizen science. It includes additional cloud storage options, a Shiny front end for running analyses, tagging photos and recording media, and interacting with the database. we can install it by performing the code:
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+```{r echo=TRUE}
+# library(devtools)
+# devtools::install_git(url = "https://code.usgs.gov/vtcfwru/ammonitor")
+# browseURL(paste0(find.package("AMMonitor"), "/extdata/wiki/00-preface.html"))
+# browseURL(paste0(find.package("AMMonitor"), "/extdata/wiki/01-introduction.html"))
+browseURL(paste0(find.package("AMMonitor"), "/extdata/wiki/02-database.html"))
+browseURL(paste0(find.package("AMMonitor"), "/extdata/wiki/03-people.html"))
 ```
 
-## Including Plots
+The function ammCreateDirectories() will run to set up a monitoring program with AMMonitor. The code below illustrates how to set up a primary directory called citizensci in a directory called Dropbox.
 
-You can also embed plots, for example:
+```{r}
+library(AMMonitor)
+# # Create the AMMonitor directory structure
+# ammCreateDirectories(amm_dir_name = "citizensci", 
+#                      parent_path = "~/Dropbox")
+# List the files created
+list.files("~/Dropbox/citizensci")
+```
+There are the following subdirectories:
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+- ammls: Stores models in an AMModels library. Models are used throughout the AMMonitor process.
+- database: Stores the AMMonitor SQLite database.
+- log_drop: Stores incoming logs generated from audio equipment.
+- logs: Stores archived logs tracking audio performance.
+- motion_drop: Stores incoming photos triggered by a motion-detection.
+- motion: Stores motion-triggered events.
+- photo_drop: Stores incoming photos collected as timed events.
+- photos: Stores archived photos collected as timed events.
+- recording_drop: Stores incoming audio recording files (e.g.,.wav) captured in acoustic monitoring programs.
+- recordings: Stores archived audio recording files (e.g., .wav)
+captured in acoustic monitoring programs.
+- scripts. Stores R scripts that can be sourced each day to automatically process new data.
+- settings: Stores files needed to access accounts (e.g., Google
+or Dropbox) via R.
+- spatials: Stores spatial layers associated with locations in a
+monitoring program (rasters and/or shapefiles) as RDS files.
+
+Next, we use the AMModels function amModelLib() to create four separate model libraries. amModelLib() requires only a description field, but additional metadata may also be included:
+
+```{r}
+library(AMModels)
+# help("AMModels") # look at the AMModels help page
+# Create a  library called "activity"
+activity <- AMModels::amModelLib(description = "This library stores models that predict activity-specific patterns.")
+
+# Create a library called  classifiers 
+classifiers <- AMModels::amModelLib(description = "This library stores machine learning models that predict a signal emitted from an object.")
+
+# Create a  library called soundscape
+soundscape <- AMModels::amModelLib(description = "This library stores results of a soundscape analysis.")
+
+# Create a library called do_fp
+do_fp <- AMModels::amModelLib(description = "This library stores results of analyses that can handle false positive detections.")
+
+# Create a list of metadata to be added to each library
+info <- list(PI = 'Fanglin Liu', 
+             Organization = 'Hefei Institutes of Physical Science')
+
+# Add metadata to each library
+ammlInfo(activity) <- info
+ammlInfo(classifiers) <- info
+ammlInfo(soundscape) <- info
+ammlInfo(do_fp) <- info
+
+# Look at one of the libraries
+activity
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+For now, we simply need to save the libraries to our ammls directory.
+
+```{r}
+# Save the libraries to the amml folder
+saveRDS(object = activity, file = "ammls/activity.RDS")
+saveRDS(object = classifiers, file = "ammls/classifiers.RDS")
+saveRDS(object = soundscape, file = "ammls/soundscape.RDS")
+saveRDS(object = do_fp, file = "ammls/do_fp.RDS")
+```
+
+At this point, we have 1) created a file directory required by citizensci, and 2) created four AMModels libraries in the ammls directory. 
+
+## 2. 
+
+
